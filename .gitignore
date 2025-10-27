@@ -1,0 +1,30 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if added later)
+node_modules/
+
+# Build files (if added later)
+dist/
+build/
+
+# Temporary files
+*.log
+*.tmp
+
+# Chrome extension packaging
+*.pem
+*.crx
+*.zip
+
+# Icons (generated)
+# Uncomment if you want to ignore generated icons
+# icons/*.png
