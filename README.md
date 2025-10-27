@@ -3,12 +3,21 @@
 A Chrome extension that lets you track upcoming and current Google Gemini AI model releases. Stay up-to-date with the latest Gemini models, their features, and availability status.
 
 ![Extension Preview](https://img.shields.io/badge/Chrome-Extension-blue?logo=google-chrome)
-![Version](https://img.shields.io/badge/version-1.0.0-green)
+![Version](https://img.shields.io/badge/version-1.1.0-green)
+![Experimental](https://img.shields.io/badge/Experimental_Models-4-purple)
 
 ## Features
 
 - **Real-time Model Information**: View current and upcoming Gemini model releases
+- **Experimental Model Tracking**: Dedicated tracking of experimental models with detailed changelog and expiry dates
+- **Smart Filtering**: Filter models by status (All, Experimental, Available, Upcoming)
 - **Detailed Model Cards**: See features, release dates, and status for each model
+- **Experimental Model Details**:
+  - Model IDs for API integration
+  - Expiry dates for experimental models
+  - Detailed changelog of improvements and features
+  - "NEW" badges for recently released experimental models
+- **Notification System**: Get notified when new experimental models are released
 - **Clean UI**: Beautiful, modern interface with gradient background and smooth animations
 - **Status Badges**: Quickly identify available, upcoming, experimental, and preview models
 - **Direct Links**: Quick access to official documentation for each model
@@ -17,13 +26,21 @@ A Chrome extension that lets you track upcoming and current Google Gemini AI mod
 
 ## Models Tracked
 
+### Available Models
 - **Gemini 2.0 Flash Thinking** - Advanced reasoning with transparent thinking process
 - **Gemini 2.0 Flash** - Next-gen multimodal with native tool use
 - **Gemini 1.5 Pro** - Production model with 2M token context window
 - **Gemini 1.5 Flash** - Fast and versatile with 1M token context
 - **Gemini 1.5 Flash-8B** - Ultra-fast compact model
-- **Gemini Experimental** - Bleeding-edge experimental features
-- **Gemini 2.0 Pro** - Upcoming flagship model (Expected Q1 2025)
+
+### Experimental Models
+- **gemini-exp-1206** - Latest experimental with enhanced reasoning (Expires: March 6, 2025)
+- **gemini-exp-1121** - Spatial reasoning and vision tasks (Expires: February 21, 2025)
+- **gemini-2.0-flash-exp** - Experimental Gemini 2.0 Flash with cutting-edge features
+- **gemini-2.0-pro-exp** - Experimental flagship model (Testing phase)
+
+### Upcoming Models
+- **Gemini 2.0 Pro** - Next-generation flagship (Expected Q1 2025)
 
 ## Installation
 
@@ -66,16 +83,34 @@ The extension will be published to the Chrome Web Store for easier installation.
    - Click the Gemini Release Tracker icon in your Chrome toolbar
    - The popup will display all tracked Gemini models
 
-2. **View Model Details**:
+2. **Filter Models**:
+   - Use the filter tabs to view specific model types:
+     - **All Models**: View all tracked models
+     - **Experimental**: See only experimental models being tested
+     - **Available**: Production-ready models
+     - **Upcoming**: Models planned for future release
+
+3. **View Model Details**:
    - Each card shows the model name, status, release date, description, and key features
    - Status badges indicate: Available, Upcoming, Experimental, or Preview
+   - Experimental models display additional information:
+     - Model ID for API usage
+     - Expiry date (when the experimental model will be retired)
+     - Detailed changelog of features and improvements
+     - "NEW" badge for recently added models
 
-3. **Learn More**:
+4. **Enable Notifications**:
+   - Check "Notify on new experimental models" to get alerts
+   - Chrome will notify you when new experimental models are released
+   - Click notification to open the extension
+
+5. **Learn More**:
    - Click "Learn More →" on any model card to visit official documentation
 
-4. **Refresh Data**:
+6. **Refresh Data**:
    - Click the "Refresh" button to update the model information
    - Data is automatically cached for one hour
+   - Experimental models are checked hourly for updates
 
 ## Development
 
@@ -133,13 +168,16 @@ Or edit `generate-icons.js` to customize the SVG design programmatically.
 
 ### Future Enhancements
 
+- [x] ~~Notifications for new model releases~~ (Implemented for experimental models)
+- [x] ~~Filter by model status~~ (Implemented)
 - [ ] Auto-fetch from Google AI documentation/blog
-- [ ] Notifications for new model releases
-- [ ] Filter by model status or features
-- [ ] Search functionality
-- [ ] Model comparison view
-- [ ] Export release timeline
+- [ ] Search functionality across all models
+- [ ] Model comparison view (side-by-side comparison)
+- [ ] Export release timeline to calendar/JSON
 - [ ] Dark/light theme toggle
+- [ ] Performance benchmarks for models
+- [ ] Pricing information per model
+- [ ] API usage examples for experimental models
 
 ## Technology Stack
 

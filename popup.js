@@ -40,20 +40,78 @@ const geminiReleases = [
     features: ["Ultra Fast", "Cost Effective", "High Volume Tasks", "Compact Size"],
     learnMoreUrl: "https://ai.google.dev/gemini-api/docs/models/gemini-v1_5"
   },
+  // Experimental Models
   {
-    name: "Gemini Experimental",
+    name: "gemini-exp-1206",
+    modelId: "gemini-exp-1206",
     status: "experimental",
-    releaseDate: "Rolling Updates",
-    description: "Experimental models with cutting-edge features. Updated regularly with latest capabilities and improvements.",
-    features: ["Bleeding Edge", "Latest Features", "Frequent Updates", "Early Access"],
+    releaseDate: "December 6, 2024",
+    expiryDate: "March 6, 2025",
+    description: "Latest experimental model with enhanced reasoning and multimodal capabilities. Features improved code generation and complex problem solving.",
+    features: ["Enhanced Reasoning", "Improved Coding", "Advanced Multimodal", "Extended Context"],
+    changelog: [
+      "Improved accuracy on complex reasoning tasks",
+      "Better code generation for multiple languages",
+      "Enhanced image understanding",
+      "Experimental long-context support"
+    ],
+    learnMoreUrl: "https://ai.google.dev/gemini-api/docs/models/experimental-models",
+    isNew: true
+  },
+  {
+    name: "gemini-exp-1121",
+    modelId: "gemini-exp-1121",
+    status: "experimental",
+    releaseDate: "November 21, 2024",
+    expiryDate: "February 21, 2025",
+    description: "Experimental model focusing on multimodal understanding and spatial reasoning with improved performance on vision tasks.",
+    features: ["Spatial Reasoning", "Vision Tasks", "Multimodal", "Fast Inference"],
+    changelog: [
+      "Enhanced spatial understanding",
+      "Improved vision-language alignment",
+      "Better performance on diagram understanding",
+      "Faster inference times"
+    ],
     learnMoreUrl: "https://ai.google.dev/gemini-api/docs/models/experimental-models"
+  },
+  {
+    name: "gemini-2.0-flash-exp",
+    modelId: "gemini-2.0-flash-exp",
+    status: "experimental",
+    releaseDate: "December 2024",
+    description: "Experimental version of Gemini 2.0 Flash with cutting-edge features being tested before stable release. Includes native tool calling improvements.",
+    features: ["Native Tools", "Multimodal Live", "Experimental Features", "High Performance"],
+    changelog: [
+      "Testing improved tool calling accuracy",
+      "Enhanced multimodal streaming",
+      "Experimental function calling syntax",
+      "Performance optimizations"
+    ],
+    learnMoreUrl: "https://ai.google.dev/gemini-api/docs/models/experimental-models",
+    isNew: true
+  },
+  {
+    name: "gemini-2.0-pro-exp",
+    modelId: "gemini-2.0-pro-exp",
+    status: "experimental",
+    releaseDate: "January 2025 (Testing)",
+    description: "Experimental flagship model being tested for upcoming release. Features state-of-the-art reasoning and coding capabilities.",
+    features: ["SOTA Reasoning", "Advanced Coding", "Large Context", "Multimodal Excellence"],
+    changelog: [
+      "Under active development",
+      "Testing enhanced reasoning algorithms",
+      "Experimental context window expansion",
+      "Advanced code understanding"
+    ],
+    learnMoreUrl: "https://ai.google.dev/gemini-api/docs/models/experimental-models",
+    isNew: true
   },
   {
     name: "Gemini 2.0 Pro",
     status: "upcoming",
     releaseDate: "Q1 2025 (Expected)",
     description: "Next-generation flagship model expected to bring significant improvements in reasoning, coding, and multimodal understanding.",
-    features: ["Enhanced Reasoning", "Advanced Coding", "Improved Multimodal", "TBD"],
+    features: ["Enhanced Reasoning", "Advanced Coding", "Improved Multimodal", "Extended Context"],
     learnMoreUrl: "https://ai.google.dev/gemini-api/docs"
   }
 ];
@@ -66,11 +124,19 @@ const releasesEl = document.getElementById('releases');
 const refreshBtn = document.getElementById('refreshBtn');
 const retryBtn = document.getElementById('retryBtn');
 const lastUpdatedEl = document.getElementById('lastUpdated');
+const experimentalCountEl = document.getElementById('experimentalCount');
+const notifyCheckbox = document.getElementById('notifyExperimental');
+
+// State
+let currentFilter = 'all';
+let allReleases = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   loadReleases();
   loadLastUpdated();
+  loadNotificationPreference();
+  setupFilterTabs();
 
   refreshBtn.addEventListener('click', () => {
     refreshBtn.disabled = true;
@@ -81,7 +147,57 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   retryBtn.addEventListener('click', loadReleases);
+
+  notifyCheckbox.addEventListener('change', saveNotificationPreference);
 });
+
+// Setup filter tabs
+function setupFilterTabs() {
+  const tabs = document.querySelectorAll('.filter-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentFilter = tab.dataset.filter;
+      filterReleases();
+    });
+  });
+}
+
+// Filter releases based on current filter
+function filterReleases() {
+  const filteredReleases = currentFilter === 'all'
+    ? allReleases
+    : allReleases.filter(r => r.status === currentFilter);
+
+  displayReleases(filteredReleases);
+}
+
+// Load and save notification preference
+async function loadNotificationPreference() {
+  const result = await chrome.storage.local.get(['notifyExperimental']);
+  if (result.notifyExperimental !== undefined) {
+    notifyCheckbox.checked = result.notifyExperimental;
+  }
+}
+
+async function saveNotificationPreference() {
+  const enabled = notifyCheckbox.checked;
+  await chrome.storage.local.set({ notifyExperimental: enabled });
+
+  if (enabled) {
+    // Request notification permission
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+
+    // Send message to background script to enable monitoring
+    chrome.runtime.sendMessage({
+      action: 'enableNotifications',
+      enabled: true
+    });
+  }
+}
 
 // Load releases from storage or use default data
 async function loadReleases() {
@@ -89,7 +205,7 @@ async function loadReleases() {
     showLoading();
 
     // Try to fetch latest data from storage
-    const result = await chrome.storage.local.get(['releases', 'lastFetch']);
+    const result = await chrome.storage.local.get(['releases', 'lastFetch', 'knownExperimentalModels']);
 
     let releases = geminiReleases;
     const now = Date.now();
@@ -109,14 +225,41 @@ async function loadReleases() {
         console.log('Using cached/default data:', e);
       }
 
+      // Check for new experimental models
+      const experimentalModels = releases.filter(r => r.status === 'experimental');
+      const knownModels = result.knownExperimentalModels || [];
+      const newModels = experimentalModels.filter(
+        model => model.modelId && !knownModels.includes(model.modelId)
+      );
+
+      // Notify about new experimental models
+      if (newModels.length > 0 && result.notifyExperimental) {
+        chrome.runtime.sendMessage({
+          action: 'notifyNewExperimental',
+          models: newModels
+        });
+      }
+
+      // Update known models
+      const allKnownModels = experimentalModels
+        .filter(m => m.modelId)
+        .map(m => m.modelId);
+
       // Save to storage
       await chrome.storage.local.set({
         releases: releases,
-        lastFetch: now
+        lastFetch: now,
+        knownExperimentalModels: allKnownModels
       });
     }
 
-    displayReleases(releases);
+    allReleases = releases;
+
+    // Update experimental count
+    const experimentalCount = releases.filter(r => r.status === 'experimental').length;
+    experimentalCountEl.textContent = experimentalCount;
+
+    filterReleases();
     updateLastUpdated();
     hideLoading();
   } catch (error) {
@@ -159,6 +302,9 @@ function displayReleases(releases) {
 function createReleaseCard(release, index) {
   const card = document.createElement('div');
   card.className = 'release-card';
+  if (release.status === 'experimental') {
+    card.classList.add('experimental-card');
+  }
   card.style.animationDelay = `${index * 0.05}s`;
 
   const statusClass = `status-${release.status}`;
@@ -168,6 +314,36 @@ function createReleaseCard(release, index) {
     .map(feature => `<span class="feature-tag">${feature}</span>`)
     .join('');
 
+  // Build experimental-specific content
+  let experimentalContent = '';
+  if (release.status === 'experimental') {
+    const newBadge = release.isNew ? '<span class="new-badge">NEW</span>' : '';
+    const modelIdHTML = release.modelId ? `<div class="model-id">Model ID: <code>${release.modelId}</code></div>` : '';
+    const expiryHTML = release.expiryDate ? `<div class="expiry-date">⏰ Expires: ${release.expiryDate}</div>` : '';
+
+    let changelogHTML = '';
+    if (release.changelog && release.changelog.length > 0) {
+      const changelogItems = release.changelog
+        .map(item => `<li>${item}</li>`)
+        .join('');
+      changelogHTML = `
+        <div class="changelog">
+          <div class="changelog-header">
+            <strong>🔬 What's New:</strong>
+          </div>
+          <ul class="changelog-list">${changelogItems}</ul>
+        </div>
+      `;
+    }
+
+    experimentalContent = `
+      ${newBadge}
+      ${modelIdHTML}
+      ${expiryHTML}
+      ${changelogHTML}
+    `;
+  }
+
   card.innerHTML = `
     <div class="release-header">
       <div>
@@ -176,6 +352,7 @@ function createReleaseCard(release, index) {
       <span class="status-badge ${statusClass}">${statusText}</span>
     </div>
     <div class="release-date">${release.releaseDate}</div>
+    ${experimentalContent}
     <div class="description">${release.description}</div>
     <div class="features">${featuresHTML}</div>
     <a href="${release.learnMoreUrl}" target="_blank" class="learn-more">

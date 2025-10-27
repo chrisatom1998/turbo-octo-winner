@@ -29,6 +29,24 @@
       <span id="lastUpdated" class="last-updated"></span>
     </div>
 
+    <div class="filter-container">
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">
+          All Models
+        </button>
+        <button class="filter-tab" data-filter="experimental">
+          <span class="experimental-icon">🧪</span> Experimental
+          <span id="experimentalCount" class="count-badge">0</span>
+        </button>
+        <button class="filter-tab" data-filter="available">Available</button>
+        <button class="filter-tab" data-filter="upcoming">Upcoming</button>
+      </div>
+      <label class="notification-toggle">
+        <input type="checkbox" id="notifyExperimental">
+        <span>Notify on new experimental models</span>
+      </label>
+    </div>
+
     <div id="loading" class="loading">
       <div class="spinner"></div>
       <p>Loading Gemini releases...</p>
